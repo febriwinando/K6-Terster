@@ -1,0 +1,41 @@
+import http from 'k6/http';
+import { sleep } from 'k6';
+
+export let options = {
+    stages: [
+        { duration: '30m', target: 1 }, // Pemanggilan selama 30 menit dengan 1 user
+    ],
+    ext: {
+        loadimpact: {
+            distribution: {
+                // Simulasi dari negara-negara selain Indonesia dan Malaysia
+                "amazon:de:frankfurt": { loadZone: "amazon:de:frankfurt", percent: 50 }, // 50% dari Jerman
+                "amazon:us:ashburn": { loadZone: "amazon:us:ashburn", percent: 25 },   // 25% dari AS
+                "amazon:jp:tokyo": { loadZone: "amazon:jp:tokyo", percent: 25 },      // 25% dari Jepang
+            }
+        }
+    }
+};
+
+const API_KEY = 'YOUR_API_KEY';  // Ganti dengan API key kamu
+
+const geocodeURL = `https://maps.googleapis.com/maps/api/geocode/json?address=1600+Amphitheatre+Parkway,+Mountain+View,+CA&key=${API_KEY}`;
+const placesURL = `https://maps.googleapis.com/maps/api/place/findplacefromtext/json?input=Eiffel+Tower&inputtype=textquery&fields=formatted_address,name,geometry&key=${API_KEY}`;
+const mapsURL = `https://maps.googleapis.com/maps/api/js?key=${API_KEY}&callback=initMap`;
+
+export default function () {
+    // Pemanggilan Geocoding API
+    let geocodeResponse = http.get(geocodeURL);
+    console.log(`Geocoding API Response time: ${geocodeResponse.timings.duration} ms, Status: ${geocodeResponse.status}`);
+
+    // Pemanggilan Places API
+    let placesResponse = http.get(placesURL);
+    console.log(`Places API Response time: ${placesResponse.timings.duration} ms, Status: ${placesResponse.status}`);
+
+    // Pemanggilan Maps JavaScript API (meskipun biasanya digunakan di browser, kita simulasikan pemanggilan)
+    let mapsResponse = http.get(mapsURL);
+    console.log(`Maps JavaScript API Response time: ${mapsResponse.timings.duration} ms, Status: ${mapsResponse.status}`);
+
+    // Lakukan sleep selama 30 detik sebelum request berikutnya
+    sleep(30);
+}
